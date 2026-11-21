@@ -1,0 +1,15 @@
+[package]
+name = "liquid-glass-core"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+
+[lib]
+name = "liquid_glass_core"
+
+[[bin]]
+name = "glass-pass"
+path = "src/bin/glass-pass.rs"
+
+[profile.release]
+lto = "thin"

@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "liquid-glass-renderer"
+version = "0.1.0"
+description = "Independent offscreen glass renderer for Linux"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.24", "Pillow>=9"]
+
+[tool.setuptools]
+packages = ["liquid_glass"]
+package-dir = {liquid_glass = "shaders"}
+
+[tool.setuptools.package-data]
+liquid_glass = ["*.frag", "include/*.glsl", "uniform-layout.json"]

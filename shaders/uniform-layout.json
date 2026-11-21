@@ -1,0 +1,984 @@
+{
+  "background": [
+    {
+      "offset": 0,
+      "size": 16,
+      "type": "float4",
+      "name": "displacement_mat"
+    },
+    {
+      "offset": 16,
+      "size": 4,
+      "type": "float",
+      "name": "inner_refraction_amount"
+    },
+    {
+      "offset": 20,
+      "size": 4,
+      "type": "float",
+      "name": "inner_refraction_inv_height"
+    },
+    {
+      "offset": 24,
+      "size": 4,
+      "type": "float",
+      "name": "outer_refraction_amount"
+    },
+    {
+      "offset": 28,
+      "size": 4,
+      "type": "float",
+      "name": "outer_refraction_inv_height"
+    },
+    {
+      "offset": 32,
+      "size": 4,
+      "type": "float",
+      "name": "refraction_threshold0"
+    },
+    {
+      "offset": 36,
+      "size": 4,
+      "type": "float",
+      "name": "refraction_threshold1"
+    },
+    {
+      "offset": 40,
+      "size": 4,
+      "type": "float",
+      "name": "blur_radius"
+    },
+    {
+      "offset": 44,
+      "size": 4,
+      "type": "float",
+      "name": "edge_bleed_blur_radius"
+    },
+    {
+      "offset": 48,
+      "size": 4,
+      "type": "float",
+      "name": "edge_bleed_amount"
+    },
+    {
+      "offset": 52,
+      "size": 4,
+      "type": "float",
+      "name": "edge_bleed_inv_height"
+    },
+    {
+      "offset": 56,
+      "size": 4,
+      "type": "float",
+      "name": "shadow_amount"
+    },
+    {
+      "offset": 60,
+      "size": 4,
+      "type": "float",
+      "name": "shadow_inv_height"
+    },
+    {
+      "offset": 64,
+      "size": 8,
+      "type": "float2",
+      "name": "shadow_offset"
+    },
+    {
+      "offset": 72,
+      "size": 4,
+      "type": "float",
+      "name": "shadow_blur_radius"
+    },
+    {
+      "offset": 76,
+      "size": 4,
+      "type": "float",
+      "name": "shadow_inv_radius"
+    },
+    {
+      "offset": 80,
+      "size": 8,
+      "type": "half4",
+      "name": "face_cm0"
+    },
+    {
+      "offset": 88,
+      "size": 8,
+      "type": "half4",
+      "name": "face_cm1"
+    },
+    {
+      "offset": 96,
+      "size": 8,
+      "type": "half4",
+      "name": "face_cm2"
+    },
+    {
+      "offset": 104,
+      "size": 8,
+      "type": "half4",
+      "name": "bleed_cm0"
+    },
+    {
+      "offset": 112,
+      "size": 8,
+      "type": "half4",
+      "name": "bleed_cm1"
+    },
+    {
+      "offset": 120,
+      "size": 8,
+      "type": "half4",
+      "name": "bleed_cm2"
+    },
+    {
+      "offset": 128,
+      "size": 8,
+      "type": "half4",
+      "name": "shadow_cm0"
+    },
+    {
+      "offset": 136,
+      "size": 8,
+      "type": "half4",
+      "name": "shadow_cm1"
+    },
+    {
+      "offset": 144,
+      "size": 8,
+      "type": "half4",
+      "name": "shadow_cm2"
+    },
+    {
+      "offset": 152,
+      "size": 4,
+      "type": "float",
+      "name": "shadow_contribution"
+    },
+    {
+      "offset": 156,
+      "size": 4,
+      "type": "float",
+      "name": "shadow_face_opacity"
+    },
+    {
+      "offset": 160,
+      "size": 4,
+      "type": "float",
+      "name": "blur_alpha0"
+    },
+    {
+      "offset": 164,
+      "size": 4,
+      "type": "float",
+      "name": "blur_alpha1"
+    },
+    {
+      "offset": 168,
+      "size": 4,
+      "type": "float",
+      "name": "blur_alpha2"
+    },
+    {
+      "offset": 172,
+      "size": 4,
+      "type": "float",
+      "name": "blur_alpha3"
+    },
+    {
+      "offset": 176,
+      "size": 4,
+      "type": "float",
+      "name": "blur_dist0"
+    },
+    {
+      "offset": 180,
+      "size": 4,
+      "type": "float",
+      "name": "blur_dist1"
+    },
+    {
+      "offset": 184,
+      "size": 4,
+      "type": "float",
+      "name": "blur_dist2"
+    },
+    {
+      "offset": 188,
+      "size": 4,
+      "type": "float",
+      "name": "blur_dist3"
+    },
+    {
+      "offset": 192,
+      "size": 4,
+      "type": "float",
+      "name": "edge_bleed_dist0"
+    },
+    {
+      "offset": 196,
+      "size": 4,
+      "type": "float",
+      "name": "edge_bleed_dist1"
+    },
+    {
+      "offset": 200,
+      "size": 4,
+      "type": "float",
+      "name": "edge_bleed_opacity"
+    },
+    {
+      "offset": 204,
+      "size": 4,
+      "type": "float",
+      "name": "face_opacity"
+    },
+    {
+      "offset": 208,
+      "size": 8,
+      "type": "float2",
+      "name": "bleed_darken"
+    },
+    {
+      "offset": 216,
+      "size": 4,
+      "type": "float",
+      "name": "shadow_dist_offset"
+    },
+    {
+      "offset": 220,
+      "size": 4,
+      "type": "float",
+      "name": "shadow_opacity"
+    },
+    {
+      "offset": 224,
+      "size": 4,
+      "type": "float",
+      "name": "refraction_opacity"
+    },
+    {
+      "offset": 228,
+      "size": 4,
+      "type": "float",
+      "name": "holding_tone_opacity"
+    },
+    {
+      "offset": 232,
+      "size": 4,
+      "type": "float",
+      "name": "sdr_shadow_dist0"
+    },
+    {
+      "offset": 236,
+      "size": 4,
+      "type": "float",
+      "name": "sdr_shadow_inv"
+    },
+    {
+      "offset": 240,
+      "size": 8,
+      "type": "float2",
+      "name": "ring_shadow_offset"
+    },
+    {
+      "offset": 248,
+      "size": 4,
+      "type": "float",
+      "name": "ring_shadow_stroke_width"
+    },
+    {
+      "offset": 252,
+      "size": 4,
+      "type": "float",
+      "name": "ring_shadow_radius"
+    },
+    {
+      "offset": 256,
+      "size": 4,
+      "type": "float",
+      "name": "ring_shadow_opacity"
+    },
+    {
+      "offset": 260,
+      "size": 4,
+      "type": "float",
+      "name": "ring_shadow_mask"
+    },
+    {
+      "offset": 264,
+      "size": 8,
+      "type": "float2",
+      "name": "key_fill_highlight_dir"
+    },
+    {
+      "offset": 272,
+      "size": 4,
+      "type": "float",
+      "name": "key_fill_highlight_height"
+    },
+    {
+      "offset": 276,
+      "size": 4,
+      "type": "float",
+      "name": "key_fill_highlight_spread"
+    },
+    {
+      "offset": 280,
+      "size": 4,
+      "type": "float",
+      "name": "key_fill_highlight_amount"
+    },
+    {
+      "offset": 284,
+      "size": 4,
+      "type": "float",
+      "name": "key_fill_highlight_effect_offset"
+    },
+    {
+      "offset": 288,
+      "size": 4,
+      "type": "float",
+      "name": "key_fill_highlight_color_bias"
+    },
+    {
+      "offset": 292,
+      "size": 4,
+      "type": "float",
+      "name": "blur_fill_blur_radius"
+    },
+    {
+      "offset": 296,
+      "size": 4,
+      "type": "float",
+      "name": "blur_fill_lighten_opacity"
+    },
+    {
+      "offset": 300,
+      "size": 4,
+      "type": "float",
+      "name": "blur_fill_darken_opacity"
+    },
+    {
+      "offset": 304,
+      "size": 4,
+      "type": "float",
+      "name": "blur_fill_normal_opacity"
+    },
+    {
+      "offset": 308,
+      "size": 4,
+      "type": "float",
+      "name": "aberration_amount"
+    },
+    {
+      "offset": 312,
+      "size": 8,
+      "type": "float2",
+      "name": "aberration_dir"
+    }
+  ],
+  "background_ext": [
+    {
+      "offset": 0,
+      "size": 4,
+      "type": "float",
+      "name": "inv_aberration_height"
+    },
+    {
+      "offset": 4,
+      "size": 4,
+      "type": "float",
+      "name": "aberration_offset"
+    },
+    {
+      "offset": 8,
+      "size": 4,
+      "type": "float",
+      "name": "sdr_white_value"
+    },
+    {
+      "offset": 12,
+      "size": 4,
+      "type": "float",
+      "name": "clamp_limit"
+    },
+    {
+      "offset": 16,
+      "size": 4,
+      "type": "float",
+      "name": "face_color_matrix_max_luma_complement"
+    },
+    {
+      "offset": 20,
+      "size": 1,
+      "type": "bool",
+      "name": "preserve_hue"
+    },
+    {
+      "offset": 21,
+      "size": 1,
+      "type": "bool",
+      "name": "blur_fill_enabled"
+    },
+    {
+      "offset": 22,
+      "size": 1,
+      "type": "bool",
+      "name": "stroke_mode"
+    },
+    {
+      "offset": 23,
+      "size": 1,
+      "type": "bool",
+      "name": "highlight_extension"
+    },
+    {
+      "offset": 24,
+      "size": 1,
+      "type": "bool",
+      "name": "wants_highlight_bias_correction"
+    }
+  ],
+  "foreground": [
+    {
+      "offset": 0,
+      "size": 16,
+      "type": "float4",
+      "name": "displacement_mat"
+    },
+    {
+      "offset": 16,
+      "size": 4,
+      "type": "float",
+      "name": "refraction_amount"
+    },
+    {
+      "offset": 20,
+      "size": 4,
+      "type": "float",
+      "name": "inv_refraction_height"
+    },
+    {
+      "offset": 24,
+      "size": 4,
+      "type": "float",
+      "name": "refraction_offset"
+    },
+    {
+      "offset": 28,
+      "size": 4,
+      "type": "float",
+      "name": "aberration_amount"
+    },
+    {
+      "offset": 32,
+      "size": 4,
+      "type": "float",
+      "name": "inv_aberration_height"
+    },
+    {
+      "offset": 36,
+      "size": 4,
+      "type": "float",
+      "name": "aberration_offset"
+    },
+    {
+      "offset": 40,
+      "size": 8,
+      "type": "float2",
+      "name": "aberration_dir"
+    },
+    {
+      "offset": 48,
+      "size": 4,
+      "type": "float",
+      "name": "edge_start"
+    },
+    {
+      "offset": 52,
+      "size": 4,
+      "type": "float",
+      "name": "edge_end"
+    },
+    {
+      "offset": 56,
+      "size": 4,
+      "type": "float",
+      "name": "edge_opacity_start"
+    },
+    {
+      "offset": 60,
+      "size": 4,
+      "type": "float",
+      "name": "edge_opacity_end"
+    },
+    {
+      "offset": 64,
+      "size": 8,
+      "type": "float2",
+      "name": "refraction_dir"
+    }
+  ],
+  "background_lph": [
+    {
+      "offset": 0,
+      "size": 16,
+      "type": "float4",
+      "name": "displacement_mat"
+    },
+    {
+      "offset": 16,
+      "size": 4,
+      "type": "float",
+      "name": "inner_refraction_amount"
+    },
+    {
+      "offset": 20,
+      "size": 4,
+      "type": "float",
+      "name": "inner_refraction_inv_height"
+    },
+    {
+      "offset": 24,
+      "size": 4,
+      "type": "float",
+      "name": "outer_refraction_amount"
+    },
+    {
+      "offset": 28,
+      "size": 4,
+      "type": "float",
+      "name": "outer_refraction_inv_height"
+    },
+    {
+      "offset": 32,
+      "size": 4,
+      "type": "float",
+      "name": "refraction_threshold0"
+    },
+    {
+      "offset": 36,
+      "size": 4,
+      "type": "float",
+      "name": "refraction_threshold1"
+    },
+    {
+      "offset": 40,
+      "size": 4,
+      "type": "float",
+      "name": "blur_radius"
+    },
+    {
+      "offset": 44,
+      "size": 4,
+      "type": "float",
+      "name": "edge_bleed_blur_radius"
+    },
+    {
+      "offset": 48,
+      "size": 4,
+      "type": "float",
+      "name": "edge_bleed_amount"
+    },
+    {
+      "offset": 52,
+      "size": 4,
+      "type": "float",
+      "name": "edge_bleed_inv_height"
+    },
+    {
+      "offset": 56,
+      "size": 4,
+      "type": "float",
+      "name": "shadow_amount"
+    },
+    {
+      "offset": 60,
+      "size": 4,
+      "type": "float",
+      "name": "shadow_inv_height"
+    },
+    {
+      "offset": 64,
+      "size": 8,
+      "type": "float2",
+      "name": "shadow_offset"
+    },
+    {
+      "offset": 72,
+      "size": 4,
+      "type": "float",
+      "name": "shadow_blur_radius"
+    },
+    {
+      "offset": 76,
+      "size": 4,
+      "type": "float",
+      "name": "shadow_inv_radius"
+    },
+    {
+      "offset": 80,
+      "size": 8,
+      "type": "half4",
+      "name": "face_cm0"
+    },
+    {
+      "offset": 88,
+      "size": 8,
+      "type": "half4",
+      "name": "face_cm1"
+    },
+    {
+      "offset": 96,
+      "size": 8,
+      "type": "half4",
+      "name": "face_cm2"
+    },
+    {
+      "offset": 104,
+      "size": 8,
+      "type": "half4",
+      "name": "bleed_cm0"
+    },
+    {
+      "offset": 112,
+      "size": 8,
+      "type": "half4",
+      "name": "bleed_cm1"
+    },
+    {
+      "offset": 120,
+      "size": 8,
+      "type": "half4",
+      "name": "bleed_cm2"
+    },
+    {
+      "offset": 128,
+      "size": 8,
+      "type": "half4",
+      "name": "shadow_cm0"
+    },
+    {
+      "offset": 136,
+      "size": 8,
+      "type": "half4",
+      "name": "shadow_cm1"
+    },
+    {
+      "offset": 144,
+      "size": 8,
+      "type": "half4",
+      "name": "shadow_cm2"
+    },
+    {
+      "offset": 152,
+      "size": 4,
+      "type": "float",
+      "name": "shadow_contribution"
+    },
+    {
+      "offset": 156,
+      "size": 4,
+      "type": "float",
+      "name": "shadow_face_opacity"
+    },
+    {
+      "offset": 160,
+      "size": 2,
+      "type": "half",
+      "name": "blur_alpha0"
+    },
+    {
+      "offset": 162,
+      "size": 2,
+      "type": "half",
+      "name": "blur_alpha1"
+    },
+    {
+      "offset": 164,
+      "size": 2,
+      "type": "half",
+      "name": "blur_alpha2"
+    },
+    {
+      "offset": 166,
+      "size": 2,
+      "type": "half",
+      "name": "blur_alpha3"
+    },
+    {
+      "offset": 168,
+      "size": 2,
+      "type": "half",
+      "name": "blur_dist0"
+    },
+    {
+      "offset": 170,
+      "size": 2,
+      "type": "half",
+      "name": "blur_dist1"
+    },
+    {
+      "offset": 172,
+      "size": 2,
+      "type": "half",
+      "name": "blur_dist2"
+    },
+    {
+      "offset": 174,
+      "size": 2,
+      "type": "half",
+      "name": "blur_dist3"
+    },
+    {
+      "offset": 176,
+      "size": 2,
+      "type": "half",
+      "name": "edge_bleed_dist0"
+    },
+    {
+      "offset": 178,
+      "size": 2,
+      "type": "half",
+      "name": "edge_bleed_dist1"
+    },
+    {
+      "offset": 180,
+      "size": 2,
+      "type": "half",
+      "name": "edge_bleed_opacity"
+    },
+    {
+      "offset": 182,
+      "size": 2,
+      "type": "half",
+      "name": "face_opacity"
+    },
+    {
+      "offset": 184,
+      "size": 4,
+      "type": "half2",
+      "name": "bleed_darken"
+    },
+    {
+      "offset": 188,
+      "size": 2,
+      "type": "half",
+      "name": "shadow_dist_offset"
+    },
+    {
+      "offset": 190,
+      "size": 2,
+      "type": "half",
+      "name": "shadow_opacity"
+    },
+    {
+      "offset": 192,
+      "size": 2,
+      "type": "half",
+      "name": "refraction_opacity"
+    },
+    {
+      "offset": 194,
+      "size": 2,
+      "type": "half",
+      "name": "holding_tone_opacity"
+    },
+    {
+      "offset": 196,
+      "size": 2,
+      "type": "half",
+      "name": "sdr_shadow_dist0"
+    },
+    {
+      "offset": 198,
+      "size": 2,
+      "type": "half",
+      "name": "sdr_shadow_inv"
+    },
+    {
+      "offset": 200,
+      "size": 4,
+      "type": "half2",
+      "name": "ring_shadow_offset"
+    },
+    {
+      "offset": 204,
+      "size": 2,
+      "type": "half",
+      "name": "ring_shadow_stroke_width"
+    },
+    {
+      "offset": 206,
+      "size": 2,
+      "type": "half",
+      "name": "ring_shadow_radius"
+    },
+    {
+      "offset": 208,
+      "size": 2,
+      "type": "half",
+      "name": "ring_shadow_opacity"
+    },
+    {
+      "offset": 210,
+      "size": 2,
+      "type": "half",
+      "name": "ring_shadow_mask"
+    },
+    {
+      "offset": 212,
+      "size": 4,
+      "type": "half2",
+      "name": "key_fill_highlight_dir"
+    },
+    {
+      "offset": 216,
+      "size": 2,
+      "type": "half",
+      "name": "key_fill_highlight_height"
+    },
+    {
+      "offset": 218,
+      "size": 2,
+      "type": "half",
+      "name": "key_fill_highlight_spread"
+    },
+    {
+      "offset": 220,
+      "size": 2,
+      "type": "half",
+      "name": "key_fill_highlight_amount"
+    },
+    {
+      "offset": 222,
+      "size": 2,
+      "type": "half",
+      "name": "key_fill_highlight_effect_offset"
+    },
+    {
+      "offset": 224,
+      "size": 2,
+      "type": "half",
+      "name": "key_fill_highlight_color_bias"
+    },
+    {
+      "offset": 226,
+      "size": 2,
+      "type": "half",
+      "name": "blur_fill_blur_radius"
+    },
+    {
+      "offset": 228,
+      "size": 2,
+      "type": "half",
+      "name": "blur_fill_lighten_opacity"
+    },
+    {
+      "offset": 230,
+      "size": 2,
+      "type": "half",
+      "name": "blur_fill_darken_opacity"
+    },
+    {
+      "offset": 232,
+      "size": 2,
+      "type": "half",
+      "name": "blur_fill_normal_opacity"
+    },
+    {
+      "offset": 234,
+      "size": 2,
+      "type": "half",
+      "name": "aberration_amount"
+    },
+    {
+      "offset": 236,
+      "size": 4,
+      "type": "half2",
+      "name": "aberration_dir"
+    }
+  ],
+  "foreground_lph": [
+    {
+      "offset": 0,
+      "size": 16,
+      "type": "float4",
+      "name": "displacement_mat"
+    },
+    {
+      "offset": 16,
+      "size": 4,
+      "type": "float",
+      "name": "refraction_amount"
+    },
+    {
+      "offset": 20,
+      "size": 4,
+      "type": "float",
+      "name": "inv_refraction_height"
+    },
+    {
+      "offset": 24,
+      "size": 4,
+      "type": "float",
+      "name": "refraction_offset"
+    },
+    {
+      "offset": 28,
+      "size": 4,
+      "type": "float",
+      "name": "aberration_amount"
+    },
+    {
+      "offset": 32,
+      "size": 4,
+      "type": "float",
+      "name": "inv_aberration_height"
+    },
+    {
+      "offset": 36,
+      "size": 4,
+      "type": "float",
+      "name": "aberration_offset"
+    },
+    {
+      "offset": 40,
+      "size": 8,
+      "type": "float2",
+      "name": "aberration_dir"
+    },
+    {
+      "offset": 48,
+      "size": 4,
+      "type": "float",
+      "name": "edge_start"
+    },
+    {
+      "offset": 52,
+      "size": 4,
+      "type": "float",
+      "name": "edge_end"
+    },
+    {
+      "offset": 56,
+      "size": 4,
+      "type": "float",
+      "name": "edge_opacity_start"
+    },
+    {
+      "offset": 60,
+      "size": 4,
+      "type": "float",
+      "name": "edge_opacity_end"
+    },
+    {
+      "offset": 64,
+      "size": 8,
+      "type": "float2",
+      "name": "refraction_dir"
+    }
+  ]
+}

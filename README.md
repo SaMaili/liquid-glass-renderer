@@ -2,6 +2,34 @@
 
 An independent offscreen renderer for Linux with a Rust library, a Python package, and shared GLSL shaders. The host application supplies backdrop pixels, layers, and material parameters. The renderer refracts and filters the backdrop through the glass shapes and returns a composited image.
 
+The renderer was built by reverse-engineering a macOS system image and uses the original material and animation values recovered for the rendering paths that have been verified.
+
+## Renderer in action
+
+### Glass morphing
+
+![Two glass shapes stretch, merge into one surface, and separate again](media/morphing.gif)
+
+### Handwritten hello
+
+![A handwritten glass hello appears stroke by stroke](media/hello.gif)
+
+An independently drawn take on the macOS first-boot greeting, rendered with a tuned Clear glass material. The lettering and timing are original to this demo.
+
+### Elastic drag and release
+
+![A pointer stretches a glass control, then releases it so it springs back into shape](media/elastic-drag.gif)
+
+The demo magnifies the deformation and slows the release so the spring motion is easy to see.
+
+### Quickshell widgets
+
+Calendar and clock widgets from the live Quickshell integration on Hyprland. All previews use the Golden Gate backdrop.
+
+| Calendar | Digital clock |
+| --- | --- |
+| ![Quickshell calendar refracting the Golden Gate Bridge](media/quickshell-calendar.webp) | ![Quickshell digital clock over the rocky Golden Gate shoreline](media/quickshell-clock.webp) |
+
 ## Installation and quick start
 
 You need Linux, EGL, and an OpenGL 4.5 driver. Mesa's llvmpipe software renderer also works. For Rust, install a linker and the EGL and GL development libraries, such as `libegl-dev` and `libgl-dev` on Debian or Ubuntu. The Rust build was tested with Rust 1.99. The Python package requires Python 3.10+, NumPy, and Pillow.

@@ -10,11 +10,11 @@ The renderer was built by reverse-engineering a macOS system image and uses the 
 
 ![Two glass shapes stretch, merge into one surface, and separate again](media/morphing.gif)
 
-### Handwritten hello
+### Multilingual hello
 
-![A handwritten glass hello appears stroke by stroke](media/hello.gif)
+![A glass Apple logo morphs into hello, followed by localized greetings and Welcome over the Golden Gate Bridge](media/hello.gif)
 
-An independently drawn greeting over the Golden Gate Bridge. This preview models the lettering as a 3D glass volume and uses the angle-dependent refraction, RGB dispersion, and wipe timing recovered from the macOS Setup Assistant. The lighting and two-second write-in are specific to this preview.
+A glass Apple logo morphs into “hello,” followed by all 49 localized Hello variants bundled with macOS 27.2 and the English “Welcome.” The preview uses the Setup Assistant’s Macintosh Skeletal lettering and recovered optical parameters. The Golden Gate scene, logo transition, and pacing of the language rotation are specific to this preview.
 
 ### Elastic drag and release
 

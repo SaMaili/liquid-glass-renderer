@@ -1,4 +1,4 @@
-"""AIR0037 static sampler profile; see BLUR-SAMPLER-UND-FLUID.md for provenance.
+"""AIR0037 static sampler profile.
 
 Only the ordinary 2D sampling profile used here is accepted, not comparison,
 bicubic, pixel-coordinate, border-color or reduction samplers.

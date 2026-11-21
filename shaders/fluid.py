@@ -1,7 +1,7 @@
 """Scalar/Euclidean-vector FluidSpringAnimation state primitive recovered from build 26A434.
 
 Values are in the caller's animation coordinate system. This is not SwiftUI's
-attribute graph or transaction dispatch. See BLUR-SAMPLER-UND-FLUID.md.
+attribute graph or transaction dispatch.
 """
 import copy
 import math

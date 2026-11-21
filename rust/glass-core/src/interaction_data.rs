@@ -1,4 +1,4 @@
-// Captured original Settings constructors, 26A434. See work/size-profiles.
+// Captured original Settings constructors, 26A434.
 pub const COMPACT: [[f64;18];2] = [
     [80.0, 1.0, 0.35, 50.0, 2.5, 60000.0, 10000.0, 0.0, 0.9, 1.1, 1.0, 0.0, 0.0, 0.0, 0.25, 0.629, 0.262, 0.625],
     [44.0, 1.0, 1.0, 50.0, 16.0, 2000.0, 10000.0, 0.0, 0.9, 1.1, 1.0, 0.0, 0.0, 0.0, 0.4, 0.375, 0.262, 0.625],

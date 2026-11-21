@@ -1,10 +1,10 @@
 # Liquid Glass Renderer
 
-Eigenständiger Offscreen-Renderer für Linux mit Rust-Bibliothek, Python-Paket und gemeinsamen GLSL-Shadern. Eine Anwendung liefert Hintergrundpixel, Ebenen und Materialparameter. Der Renderer zeichnet die Glasflächen, bricht und filtert den Hintergrund und gibt das zusammengesetzte Bild zurück.
+An independent offscreen renderer for Linux with a Rust library, a Python package, and shared GLSL shaders. The host application supplies backdrop pixels, layers, and material parameters. The renderer refracts and filters the backdrop through the glass shapes and returns a composited image.
 
-## Installation und Start
+## Installation and quick start
 
-Vorausgesetzt werden Linux, EGL und ein OpenGL-4.5-Treiber. Mesa mit llvmpipe funktioniert als Software-Renderer. Rust benötigt zusätzlich einen Linker sowie die Entwicklungspakete für EGL und GL, zum Beispiel `libegl-dev` und `libgl-dev` unter Debian oder Ubuntu. Der Rust-Stand wurde mit Rust 1.99 geprüft. Das Python-Paket benötigt Python 3.10+, NumPy und Pillow.
+You need Linux, EGL, and an OpenGL 4.5 driver. Mesa's llvmpipe software renderer also works. For Rust, install a linker and the EGL and GL development libraries, such as `libegl-dev` and `libgl-dev` on Debian or Ubuntu. The Rust build was tested with Rust 1.99. The Python package requires Python 3.10+, NumPy, and Pillow.
 
 ### Rust
 
@@ -14,7 +14,7 @@ mkdir -p out
 cargo run --release --manifest-path rust/glass-core/Cargo.toml --example pass -- out/rust-glass.ppm
 ```
 
-Das Beispiel rendert zwei überlappende Flächen und aktualisiert einen Ausschnitt des Hintergrunds. Für eigene Anwendungen bietet das Crate `liquid_glass_core` die Typen `Renderer`, `Frame`, `SdrRecipe` und `LiveScene`.
+The example renders two overlapping glass shapes and updates part of the backdrop. Use `Renderer`, `Frame`, `SdrRecipe`, and `LiveScene` from the `liquid_glass_core` crate to integrate the renderer into your application.
 
 ### Python
 
@@ -25,20 +25,20 @@ python -m pip install .
 python -m liquid_glass --output out/python-glass.png
 ```
 
-Mit `SceneRenderer`, `Element` und `Material` lassen sich eigene Szenen definieren. Das Python-Paket erwartet explizite Materialwerte. Arrays haben die Form `(Höhe, Breite, 4)`. Die Szenenkomposition arbeitet standardmäßig mit linearem, vormultipliziertem RGBA.
+Build custom scenes with `SceneRenderer`, `Element`, and `Material`. The Python package takes explicit material values. Images are arrays of shape `(height, width, 4)`. The compositor defaults to linear, premultiplied RGBA.
 
-## Feature-Checkliste
+## Feature checklist
 
-- [x] Offscreen-Rendering mit EGL/OpenGL und gemeinsamen GLSL-Pässen
-- [x] Distanzfelder aus Geometrie oder als Raster sowie weiche Vereinigung mehrerer Formen
-- [x] Brechung, chromatische Aberration, Blur-Mip-Pyramide und Hintergrundkomposition
-- [x] Konturglanz, Randfärbung und Schatten in den entsprechenden Materialpässen
-- [x] Geordnete Glasgruppen über dem ursprünglichen oder bereits zusammengesetzten Hintergrund
-- [x] Federbasierte Animation mit neuen Zielen während der Bewegung
-- [x] Rust-SDR-Materialrezepte für Clear, Regular, Dock und Popover mit Diffusion und Tint
-- [x] Rust-Interaktionsschicht mit Hover, Press und lokalem Lichtfleck
-- [x] Rust-Teilaktualisierung von Hintergrundregionen und Wiederverwendung von GPU-Ressourcen
-- [ ] Allgemeine automatische Material- und Formzuordnung wie im macOS-Compositor
-- [ ] Vollständige visuelle Übereinstimmung mit nativen Apple-Ausgaben auf allen Grafiktreibern
+- [x] Offscreen EGL/OpenGL rendering with shared GLSL passes
+- [x] Distance fields from geometry or rasters, with smooth unions of multiple shapes
+- [x] Refraction, chromatic aberration, blur mip pyramids, and backdrop composition
+- [x] Edge highlights, edge color bleed, and shadows in the corresponding material passes
+- [x] Ordered glass groups that sample either the original backdrop or the composited result
+- [x] Spring animations that can be retargeted while in motion
+- [x] Rust SDR material recipes for Clear, Regular, Dock, and Popover with diffusion and tint
+- [x] Rust interaction effects for hover, press, and localized glow
+- [x] Rust partial backdrop updates and GPU resource reuse
+- [ ] General automatic material and shape matching as in the macOS compositor
+- [ ] Full visual parity with Apple's native output across graphics drivers
 
-Das Repository enthält den ausführbaren Renderer und synthetische Beispiele. Es ist ein unabhängiges Projekt mit Linux-Backend.
+The repository includes runnable renderers and synthetic examples.

@@ -14,7 +14,7 @@ The renderer was built by reverse-engineering a macOS system image and uses the 
 
 ![A handwritten glass hello appears stroke by stroke](media/hello.gif)
 
-An independently drawn take on the macOS first-boot greeting, rendered with a tuned Clear glass material. The lettering and timing are original to this demo.
+An independently drawn greeting over the Golden Gate Bridge. This preview models the lettering as a 3D glass volume and uses the angle-dependent refraction, RGB dispersion, and wipe timing recovered from the macOS Setup Assistant. The lighting and two-second write-in are specific to this preview.
 
 ### Elastic drag and release
 

@@ -12,7 +12,7 @@ The renderer was built by reverse-engineering a macOS system image and uses the 
 
 ### Multilingual hello
 
-![A glass Apple logo morphs into hello, followed by localized greetings and Welcome over the Golden Gate Bridge](media/hello.gif)
+![A glass Apple logo morphs into hello, followed by localized greetings and Welcome over the Golden Gate Bridge](media/hello_dynamic.gif)
 
 A glass Apple logo morphs into “hello,” followed by all 49 localized Hello variants bundled with macOS 27.2 and the English “Welcome.” The preview uses the Setup Assistant’s Macintosh Skeletal lettering and recovered optical parameters. The Golden Gate scene, logo transition, and pacing of the language rotation are specific to this preview.
 

@@ -6,7 +6,7 @@ pub mod recipe;
 pub mod adaptive;
 
 use crate::{Result, scene::{Material, MaterialKind}};
-pub use color::{YccColor, linear_fill_matrix};
+pub use color::{YccColor, apply_dodge_fill, linear_fill_matrix};
 
 pub struct Blur {
     pub radius: f32,

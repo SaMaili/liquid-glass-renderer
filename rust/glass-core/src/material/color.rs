@@ -93,3 +93,19 @@ pub fn linear_fill_matrix([red, green, blue, alpha]: [f32; 4]) -> Matrix {
         [0.0, 0.0, 0.0, 1.0, 0.0],
     ]
 }
+
+/// 26A434 DesignLibrary dodgeFill color-matrix transform (0x23f5c8f08):
+/// scales RGB rows by 1 + d / (1 - d) where d = min(c * a, 255/256).
+pub fn apply_dodge_fill(mut matrix: Matrix, [red, green, blue, alpha]: [f32; 4]) -> Matrix {
+    let max_d = f32::from_bits(0x3f7f_0000); // 0.99609375
+    let scale = |c: f32| {
+        let d = (c * alpha).min(max_d);
+        1.0 + d / (1.0 - d)
+    };
+    for (row, factor) in matrix[..3].iter_mut().zip([scale(red), scale(green), scale(blue)]) {
+        for value in row.iter_mut() {
+            *value *= factor;
+        }
+    }
+    matrix
+}

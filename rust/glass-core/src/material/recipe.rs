@@ -3,9 +3,70 @@ use super::{
     spec::{BlurDistance, BlurSpec, BoundedDistance, Dimensions, EdgeBleedSpec, MaterialSpec,
            ParameterScale, RefractionSpec, ShadowSpec},
     BackgroundMaterial, BackgroundParameters, BackgroundStyle, BlurFill, ColorMatrices,
-    Effects, Geometry, Highlights, YccColor, linear_fill_matrix,
+    Effects, Geometry, Highlights, YccColor, apply_dodge_fill, linear_fill_matrix,
 };
 use crate::{Result, Size, overlay::Appearance, raster::Viewport, scene::blur_level_count};
+
+/// Exact 26A434 CASDFKeyFillHighlightEffect (Parameters.highlights) payload for
+/// the overlaid SDFLayer.GroupLayer pass (sdf_diffuse_kf_highlight +
+/// backdrop_aware_vibrant_color_matrix_sover).
+#[derive(Clone, Copy)]
+pub struct KeyFillHighlight {
+    /// RGB rows of the 4×5 highlight YCC (+ optional dodgeFill) matrix packed as
+    /// [m0, m1, m2, m4] per row, followed by [keyDir.x, keyDir.y, clampMax, opacity].
+    pub matrix: [[f32; 4]; 4],
+    /// [0] = [sharpHeight, cos(sharpSpread), 1/sharpAmount - 2, curvature]
+    /// [1] = [diffuseHeight, cos(diffuseSpread), 1/diffuseAmount - 2, inset]
+    pub lobes: [[f32; 4]; 2],
+}
+
+impl KeyFillHighlight {
+    /// Exact 26A434 Parameters.highlights resolved for macOS retail V2 (keyAngle = 0).
+    pub fn for_recipe(role: RecipeRole, appearance: Appearance) -> Result<Self> {
+        let dark = matches!(appearance, Appearance::Dark);
+        let (ycc, dodge_fill) = match (role, dark) {
+            (RecipeRole::Dock, false) => (
+                YccColor { black: 0.15, white: 0.9, saturation: 1.0, fill: [0.0; 4] },
+                Some([0.05087609_f32, 0.05087609, 0.05087609, 1.0]),
+            ),
+            (RecipeRole::Dock, true) => (
+                YccColor { black: 0.25, white: 0.95, saturation: 1.2, fill: [0.0; 4] },
+                None,
+            ),
+            (RecipeRole::Regular | RecipeRole::Popover, _) => (
+                YccColor { black: 0.125, white: 0.9, saturation: 1.0, fill: [0.0; 4] },
+                Some([0.01960665_f32, 0.01960665, 0.01960665, 1.0]),
+            ),
+            (RecipeRole::Clear, _) => (
+                YccColor { black: 0.15, white: 1.1, saturation: 1.0, fill: [0.0; 4] },
+                Some([0.05087609_f32, 0.05087609, 0.05087609, 1.0]),
+            ),
+        };
+        let mut mat = ycc.matrix()?;
+        if let Some(dodge) = dodge_fill {
+            mat = apply_dodge_fill(mat, dodge);
+        }
+        // 26A434 key & fill parameters: height = 1.0 pt, spread = 80°, curvature = 0.75,
+        // amount = 0.5, diffuse = (heightScale: 8.0, spreadScale: 0.65, amountScale: 0.15),
+        // keyAngle = 0.0 -> keyDir = (sin(0), -cos(0)) = (0, -1), fillDir = (0, +1).
+        let spread: f64 = 1.3962634015954636; // 80°
+        let sharp_amount: f64 = 0.5;
+        let diffuse_spread = spread * 0.65; // 52°
+        let diffuse_amount = sharp_amount * 0.15; // 0.075
+        Ok(Self {
+            matrix: [
+                [mat[0][0], mat[0][1], mat[0][2], mat[0][4]],
+                [mat[1][0], mat[1][1], mat[1][2], mat[1][4]],
+                [mat[2][0], mat[2][1], mat[2][2], mat[2][4]],
+                [0.0, -1.0, 1.0, 1.0],
+            ],
+            lobes: [
+                [1.0, spread.cos() as f32, (1.0 / sharp_amount - 2.0) as f32, 0.75],
+                [8.0, diffuse_spread.cos() as f32, (1.0 / diffuse_amount - 2.0) as f32, 0.0],
+            ],
+        })
+    }
+}
 
 #[derive(Clone, Copy)]
 pub enum RecipeRole {
@@ -251,16 +312,28 @@ impl SdrRecipe {
             target_size: [pixels.width,pixels.height], source_scale: scale, output_scale: scale,
             sdf_transform: None,
         };
+        let (dark_spread, dark_spread_sdr) = match (self.role, dark) {
+            (RecipeRole::Dock, _) => (2.0943951023931953, 1.3089969389957472),
+            (RecipeRole::Regular | RecipeRole::Popover, false) => (1.6755160819145565, 1.8500490071139892),
+            _ => (1.3089969389957472, 1.3089969389957472),
+        };
         let effects = Effects {
             face_opacity: 1.0, bleed_blend_mode: 1, shadow_offset: spec.shadow.offset,
             ring_vertical_offset: 0.0, ring_stroke_width: 0.0, ring_radius: 0.0,
-            ring_opacity: 0.0, ring_mask: 0.0, holding_tone: 0, headroom_fraction: 1.0,
+            ring_opacity: 0.0, ring_mask: 0.0, holding_tone: 0, headroom_fraction: 0.0,
             sdr_shadow_distances: [-2.5,-1.5], aberration_amount: 0.1, aberration_height: 20.0,
             aberration_offset: 0.0, aberration_angle: 0.7, sdr_white_value: 1.0,
             clamp_limit: 1.0, clamp_override: 0.0, context_gamma: 2.2,
             preserve_hue: 0, force_preserve_hue: false,
-            highlights: Highlights { height: if layer.specular { 0.5 } else { 0.0 }, angle: 0.7, spread: 1.3, spread_sdr: 1.8,
-                                     amount: 0.4, effect_offset: layer.highlight_offset.unwrap_or(-0.5), color_bias: -0.25 },
+            highlights: Highlights {
+                height: if layer.specular { 1.0 } else { 0.0 },
+                angle: std::f64::consts::FRAC_PI_2,
+                spread: dark_spread,
+                spread_sdr: dark_spread_sdr,
+                amount: 0.4,
+                effect_offset: layer.highlight_offset.unwrap_or(-1.0),
+                color_bias: -0.25,
+            },
         };
         let parameters = BackgroundParameters {
             blur: resolved.blur, refraction: resolved.refraction, edge_bleed: resolved.edge_bleed,

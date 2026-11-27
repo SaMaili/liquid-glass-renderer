@@ -46,6 +46,19 @@ impl FrameStage<'_> {
                     }
                     key.count(group.shapes.len())?;
                     for &shape in group.shapes { key.shape(shape)?; }
+                    key.count(group.shape_tags.len())?;
+                    for &tags in group.shape_tags { key.bytes(&tags.to_ne_bytes())?; }
+                    key.count(group.tints.len())?;
+                    for tint in group.tints {
+                        key.bytes(&tint.shape_filter.mask.to_ne_bytes())?;
+                        key.bytes(&tint.shape_filter.value.to_ne_bytes())?;
+                        key.bytes(&[u8::from(tint.preserves_hue)])?;
+                        for value in [tint.opacity, tint.max_color_component].into_iter()
+                            .chain(tint.ramp.parameters()).chain(tint.matrix.into_iter().flatten())
+                        {
+                            key.bytes(&value.to_bits().to_ne_bytes())?;
+                        }
+                    }
                 }
             }
             Self::Interaction {shape,appearance,fill,light} => {

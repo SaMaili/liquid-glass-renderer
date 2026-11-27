@@ -72,6 +72,8 @@ fn background_patches_compose_all_materials_and_feed_the_next_group() {
             MaterialKind::CompositeEdge,MaterialKind::CompositeRefraction,MaterialKind::All];
         for kind in variants {
             let groups = [&shapes[..2],&shapes[2..]].map(|shapes| Group {
+                shape_tags: &[],
+                tints: &[],
                 shapes, opacity: 0.75, smoothness: 6.0,
                 blur_levels: if scale==Scale::One { 2 } else { 3 },
                 material: if matches!(kind,MaterialKind::Foreground) {
@@ -153,6 +155,8 @@ fn a_failed_draw_or_bad_batch_keeps_the_previous_version_and_pixels() {
         transform: [[15.0,0.0,-7.13],[0.0,9.0,-4.23]],
     }];
     let groups = [Group {
+        shape_tags: &[],
+        tints: &[],
         shapes:&shapes, opacity:1.0, smoothness:0.0, blur_levels:1,
         material:Material {kind:MaterialKind::Minimal,uniforms:&uniforms,extension:&extension},
     }];

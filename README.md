@@ -30,6 +30,15 @@ Calendar and clock widgets from the live Quickshell integration on Hyprland. All
 | --- | --- |
 | ![Quickshell calendar refracting the Golden Gate Bridge](media/quickshell-calendar.webp) | ![Quickshell digital clock over the rocky Golden Gate shoreline](media/quickshell-clock.webp) |
 
+## Choosing an entry point
+
+You do not need to read any reverse-engineering internals to build with this renderer:
+
+1. **Standalone apps & creative tools (e.g. an Icon Composer, Rust / C++ / Python):**
+   Use the `liquid_glass_core` Rust crate (`Renderer`, `Frame`, `SdrRecipe`, `RecipeRole::AppIcons`), the Python package (`SceneRenderer`, `Element`, `Material`), or the C ABI in [`integrations/hyprland/widget_renderer.hpp`](integrations/hyprland/widget_renderer.hpp) (`lg_widget_prepare` for real-time GPU viewports, `lg_widget_render` for RGBA/PNG export). No compositor integration required when rendering glass over your own app canvas.
+2. **Desktop shells & Wayland overlays (Hyprland + Quickshell / GTK4-Layer-Shell):**
+   Use the compositor GPU plugin in [`integrations/hyprland/`](integrations/hyprland/) and see **[`integrations/hyprland/QUICKSTART.md`](integrations/hyprland/QUICKSTART.md)** for the complete IPC reference (material roles `0..7`, `localBounds`, vertical Dual-Tint `grad`, and GPU `sdfUnion` Mitosis).
+
 ## Installation and quick start
 
 You need Linux, EGL, and an OpenGL 4.5 driver. Mesa's llvmpipe software renderer also works. For Rust, install a linker and the EGL and GL development libraries, such as `libegl-dev` and `libgl-dev` on Debian or Ubuntu. The Rust build was tested with Rust 1.99. The Python package requires Python 3.10+, NumPy, and Pillow.
@@ -63,7 +72,11 @@ Build custom scenes with `SceneRenderer`, `Element`, and `Material`. The Python 
 - [x] Edge highlights, edge color bleed, and shadows in the corresponding material passes
 - [x] Ordered glass groups that sample either the original backdrop or the composited result
 - [x] Spring animations that can be retargeted while in motion
-- [x] Rust SDR material recipes for Clear, Regular, Dock, and Popover with diffusion and tint
+- [x] Rust SDR material recipes for Clear, Regular, Dock, Popover, and AppIcons with diffusion and tint
+- [x] Native vertical Dual-Tint gradient (`widgetTint` → `widgetTint2` with `clearBottomFactor` for dark-top / crystal-clear-bottom glass)
+- [x] GPU `sdfUnion` Mitosis with anisotropic ellipses (smooth button/droplet merging)
+- [x] `26B123` `SiriEffect` GLSL port (`shaders/siri-effect.frag`: 4× RGSS MSAA chromatic wave + 6-pair fluid metaball dots)
+- [x] Hyprland GPU compositor plugin (`integrations/hyprland/`) with C ABI and IPC quickstart
 - [x] Rust interaction effects for hover, press, and localized glow
 - [x] Rust partial backdrop updates and GPU resource reuse
 - [ ] General automatic material and shape matching as in the macOS compositor

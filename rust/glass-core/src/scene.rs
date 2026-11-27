@@ -1,8 +1,14 @@
 //! Caller-ordered glass groups using the recovered GLSL and linear SDR composition.
+use std::{borrow::Cow, rc::Rc, sync::LazyLock};
+
 use crate::{MipFilter, Pass, Raster, Renderer, Result, Sampler, Size, raster::{Content, Patch, PixelRect}};
 
 const SDF_PROBE: &str = include_str!("../../../shaders/sdf-probe.frag");
 const SDF_UNION: &str = include_str!("../../../shaders/sdf-union.frag");
+static SDF_UNION_WITH_TIES: LazyLock<String> = LazyLock::new(|| {
+    SDF_UNION.replacen("#version 450\n", "#version 450\n#define RESOLVE_UNION_TIES\n", 1)
+});
+const SDF_TINT: &str = include_str!("../../../shaders/sdf-tint.frag");
 const BLUR: &str = include_str!("../../../shaders/blur-agx2.frag");
 const GEOMETRY_VERTEX: &str = r#"#version 450
 layout(location=0) out vec2 shape;
@@ -69,9 +75,82 @@ pub enum Shape<'a> {
     Geometry { values: [[f32; 4]; 3], transform: [[f32; 3]; 2] },
 }
 
+/// Select shapes by comparing their masked tag bits to `value`.
+#[derive(Clone, Copy)]
+pub struct ShapeFilter {
+    pub mask: u64,
+    pub value: u64,
+}
+
+impl ShapeFilter {
+    pub const ALL: Self = Self { mask: 0, value: 0 };
+
+    pub const fn exact(tags: u64) -> Self {
+        Self { mask: u64::MAX, value: tags }
+    }
+
+    fn matches(self, tags: u64) -> bool {
+        tags & self.mask == self.value
+    }
+}
+
+/// Signed distances in logical points. Negative values lie inside the shape.
+#[derive(Clone, Copy)]
+pub enum TintRamp {
+    Sharp { edge: f32 },
+    Soft { opaque_through: f32, transparent_at: f32 },
+}
+
+impl TintRamp {
+    /// The 26A434 recipe uses opaque stops at -1 and 0, then fades to 10 points.
+    pub const SOFT: Self = Self::Soft { opaque_through: 0.0, transparent_at: 10.0 };
+    /// The sharp recipe moves the transparent stop from 10 to 0 points.
+    pub const SHARP: Self = Self::Sharp { edge: 0.0 };
+
+    pub(crate) fn parameters(self) -> [f32; 3] {
+        match self {
+            Self::Sharp { edge } => [edge, edge, 1.0],
+            Self::Soft { opaque_through, transparent_at } => [opaque_through, transparent_at, 0.0],
+        }
+    }
+}
+
+/// A backdrop-aware color-matrix layer over the rendered glass, in linear sRGB.
+#[derive(Clone, Copy)]
+pub struct Tint {
+    pub shape_filter: ShapeFilter,
+    pub ramp: TintRamp,
+    pub opacity: f32,
+    /// Row-major 4×5 matrix applied to straight RGB, alpha, and a constant 1.
+    pub matrix: [[f32; 5]; 4],
+    /// A positive value clamps the matrix output. Zero disables clamping.
+    pub max_color_component: f32,
+    pub preserves_hue: bool,
+}
+
+impl Tint {
+    fn validate(self) -> Result<()> {
+        let [start, end, sharp] = self.ramp.parameters();
+        if self.shape_filter.value & !self.shape_filter.mask != 0
+            || !(0.0..=1.0).contains(&self.opacity)
+            || !(0.0..=f32::MAX).contains(&self.max_color_component)
+            || !self.matrix.iter().flatten().all(|v| v.is_finite())
+            || !start.is_finite() || !end.is_finite()
+            || (sharp == 0.0 && (end <= start || !(end - start).is_finite()))
+        {
+            return Err("invalid glass tint".into());
+        }
+        Ok(())
+    }
+}
+
 pub struct Group<'a> {
     pub shapes: &'a [Shape<'a>],
+    /// Tags in shape order. An empty slice gives every shape tag zero.
+    pub shape_tags: &'a [u64],
     pub material: Material<'a>,
+    /// Applied in slice order after the material pass.
+    pub tints: &'a [Tint],
     pub opacity: f32,
     pub smoothness: f32,
     /// AGX2 levels for the viewport's pixel raster, counting the original image.
@@ -129,14 +208,14 @@ pub fn blur_level_count(size: Size, s1: f32) -> Result<u32> {
 const DUMMY: Size = Size { width: 1, height: 1 };
 const ZERO: [f32; 4] = [0.0; 4];
 
-pub(crate) fn field<'a>(renderer: &mut Renderer, shape: Shape<'a>) -> Result<std::borrow::Cow<'a, [f32]>> {
+pub(crate) fn field<'a>(renderer: &mut Renderer, shape: Shape<'a>) -> Result<Cow<'a, [f32]>> {
     match shape {
         Shape::Field(raster) => {
             raster.validate()?;
             if raster.size != renderer.size() {
                 return Err("distance field does not match the viewport".into());
             }
-            Ok(std::borrow::Cow::Borrowed(raster.rgba))
+            Ok(Cow::Borrowed(raster.rgba))
         }
         Shape::Geometry { values, transform } => {
             if !values.iter().flatten().chain(transform.iter().flatten()).all(|v| v.is_finite()) {
@@ -167,25 +246,27 @@ pub(crate) fn field<'a>(renderer: &mut Renderer, shape: Shape<'a>) -> Result<std
                 noise: None, uniforms: &uniforms, extension: &[], edr: 1.0,
                 extra_uniforms: &[(10, &transform)], vertex_count: 3,
             })?;
-            Ok(std::borrow::Cow::Owned(output))
+            Ok(Cow::Owned(output))
         }
     }
 }
 
 fn union(renderer: &mut Renderer, a: &[f32], b: &[f32], smoothness: f32) -> Result<Vec<f32>> {
+    let mut ties = false;
     for (a, b) in a.chunks_exact(4).zip(b.chunks_exact(4)) {
         let (distance, dot) = if b[3] == 0.0 { (10_000.0, 0.0) } else {
             (b[0], a[1] * b[1] + a[2] * b[2])
         };
         let k = (0.5 - 0.5 * dot).clamp(0.0, 1.0) * smoothness;
         let delta = distance - a[0];
-        if !k.is_finite() || !delta.is_finite() || (k == 0.0 && delta == 0.0) {
-            return Err("undefined or overflowing union arithmetic".into());
+        if !k.is_finite() || !delta.is_finite() {
+            return Err("overflowing union arithmetic".into());
         }
+        ties |= k == 0.0 && delta == 0.0;
     }
     let size = renderer.size();
     renderer.render(&Pass {
-        fragment: SDF_UNION, vertex: None,
+        fragment: if ties { &SDF_UNION_WITH_TIES } else { SDF_UNION }, vertex: None,
         source: input(size, a, &[], MipFilter::None),
         sdf: input(size, b, &[], MipFilter::None),
         noise: None, uniforms: &words::<4,16>([smoothness, 0.0, 0.0, 0.0]),
@@ -223,23 +304,117 @@ fn validate_groups(size: Size, groups: &[Group<'_>]) -> Result<()> {
         if group.shapes.is_empty() || !(0.0..=1.0).contains(&group.opacity)
             || !(0.0..=f32::MAX).contains(&group.smoothness)
             || !(1..=capacity).contains(&group.blur_levels)
+            || (!group.shape_tags.is_empty() && group.shape_tags.len() != group.shapes.len())
         {
             return Err("invalid glass group".into());
+        }
+        for &tint in group.tints {
+            tint.validate()?;
         }
     }
     Ok(())
 }
 
-fn group_field<'a>(renderer: &mut Renderer, group: &Group<'a>) -> Result<std::borrow::Cow<'a, [f32]>> {
-    let mut shapes = group.shapes.iter().copied();
-    let mut sdf = field(renderer, shapes.next().unwrap())?;
-    for shape in shapes {
-        let next = field(renderer, shape)?;
-        if sdf != next {
-            sdf = std::borrow::Cow::Owned(union(renderer, &sdf, &next, group.smoothness)?);
+type DistanceField<'a> = Rc<Cow<'a, [f32]>>;
+
+fn merge_field<'a>(
+    renderer: &mut Renderer,
+    combined: &mut Option<DistanceField<'a>>,
+    next: &DistanceField<'a>,
+    smoothness: f32,
+) -> Result<()> {
+    match combined {
+        Some(field) if field != next => *field = Rc::new(Cow::Owned(union(renderer, field, next, smoothness)?)),
+        None => *combined = Some(Rc::clone(next)),
+        _ => {}
+    }
+    Ok(())
+}
+
+struct GroupFields<'a> {
+    union: DistanceField<'a>,
+    retained: Vec<(u64, DistanceField<'a>)>,
+}
+
+fn group_fields<'a>(renderer: &mut Renderer, group: &Group<'a>) -> Result<GroupFields<'a>> {
+    let mut combined = None;
+    let mut retained = Vec::new();
+    for (index, &shape) in group.shapes.iter().enumerate() {
+        let next = Rc::new(field(renderer, shape)?);
+        merge_field(renderer, &mut combined, &next, group.smoothness)?;
+        let tags = group.shape_tags.get(index).copied().unwrap_or(0);
+        if group.tints.iter().any(|tint| {
+            tint.opacity != 0.0 && tint.shape_filter.mask != 0 && tint.shape_filter.matches(tags)
+        }) {
+            retained.push((tags, next));
         }
     }
-    Ok(sdf)
+    Ok(GroupFields { union: combined.unwrap(), retained })
+}
+
+impl<'a> GroupFields<'a> {
+    fn for_tint(
+        &self,
+        renderer: &mut Renderer,
+        group: &Group<'_>,
+        filter: ShapeFilter,
+    ) -> Result<Option<DistanceField<'a>>> {
+        let matching = || self.retained.iter().filter(|(tags, _)| filter.matches(*tags));
+        if filter.mask == 0 || matching().count() == group.shapes.len() {
+            return Ok(Some(Rc::clone(&self.union)));
+        }
+        let mut combined = None;
+        for (_, field) in matching() {
+            merge_field(renderer, &mut combined, field, group.smoothness)?;
+        }
+        Ok(combined)
+    }
+}
+
+fn apply_tints(
+    renderer: &mut Renderer,
+    group: &Group<'_>,
+    fields: &GroupFields<'_>,
+    destination: &[f32],
+    layer: &[f32],
+    damage: PixelRect,
+) -> Result<Option<Vec<f32>>> {
+    let size = renderer.size();
+    let region = Size { width: damage.width, height: damage.height };
+    let mut tinted = None;
+    for tint in group.tints.iter().filter(|tint| tint.opacity != 0.0) {
+        let Some(field) = fields.for_tint(renderer, group, tint.shape_filter)? else { continue };
+        let pixels = tinted.get_or_insert_with(|| {
+            let mut pixels = layer.to_vec();
+            let back = damage.row_spans(size).flat_map(|span| destination[span].as_chunks::<4>().0);
+            for (front, back) in pixels.as_chunks_mut::<4>().0.iter_mut().zip(back) {
+                let remaining = 1.0 - front[3];
+                for (front, back) in front.iter_mut().zip(back) {
+                    *front += back * remaining;
+                }
+            }
+            pixels
+        });
+        let [start, end, sharp] = tint.ramp.parameters();
+        let mut uniforms = [0.0; 28];
+        // The shader consumes five RGBA columns followed by two vec4s.
+        for (index, word) in uniforms[..20].iter_mut().enumerate() {
+            *word = tint.matrix[index % 4][index / 4];
+        }
+        uniforms[20..].copy_from_slice(&[
+            start, end, tint.opacity, tint.max_color_component,
+            damage.x as f32, damage.y as f32, sharp, f32::from(u8::from(tint.preserves_hue)),
+        ]);
+        *pixels = renderer.render_rect(&Pass {
+            fragment: SDF_TINT, vertex: None,
+            source: input(region, pixels, &[], MipFilter::None),
+            sdf: input(size, &field, &[], MipFilter::None),
+            noise: Some(input(size, &fields.union, &[], MipFilter::None)),
+            uniforms: &words::<28, 112>(uniforms), extension: &[], edr: 1.0,
+            extra_uniforms: &[], vertex_count: 3,
+        }, size, damage)?;
+    }
+    Ok(tinted)
 }
 
 /// Conservative radius in base raster pixels for sampling any generated mip.
@@ -359,13 +534,14 @@ fn render_stages(
         Vec::new()
     };
     for (index,group) in active().enumerate() {
-        let sdf = group_field(renderer, group)?;
+        let fields = group_fields(renderer, group)?;
+        let sdf = &fields.union;
         if prior.is_some() && damage != full {
             let source_damage = match backdrop {
                 Backdrop::Original => input_damage,
                 Backdrop::Current => damage,
             };
-            damage = damage.cover(material_damage(group,&sdf,source_damage,size)?).align_quads(size);
+            damage = damage.cover(material_damage(group,sdf,source_damage,size)?).align_quads(size);
         }
 
         let current;
@@ -381,11 +557,12 @@ fn render_stages(
         let layer = renderer.render_rect(&Pass {
             fragment: group.material.kind.shader(), vertex: None,
             source: input(size, base.rgba, &mips, MipFilter::Linear),
-            sdf: input(size, &sdf, &[], MipFilter::Nearest),
+            sdf: input(size, sdf, &[], MipFilter::Nearest),
             noise: None, uniforms: group.material.uniforms, extension: group.material.extension,
             edr: 1.0, extra_uniforms: &[], vertex_count: 3,
         }, size, damage)?;
 
+        let tinted = apply_tints(renderer, group, &fields, &result, &layer, damage)?;
         if let Some(previous) = &prior && damage != full {
             let mut next = previous.stages[index].clone();
             for span in damage.row_spans(size) {
@@ -393,12 +570,25 @@ fn render_stages(
             }
             result = next;
         }
-        for (span,row) in damage.row_spans(size).zip(layer.chunks_exact(damage.width as usize * 4)) {
-            for (back, front) in result[span].chunks_exact_mut(4).zip(row.chunks_exact(4)) {
+        let tint_pixels = tinted.as_deref().map(|pixels| pixels.as_chunks::<4>().0);
+        let mut index = 0;
+        let rows = layer.as_chunks::<4>().0.chunks_exact(damage.width as usize);
+        for (span, row) in damage.row_spans(size).zip(rows) {
+            for (back, front) in result[span].as_chunks_mut::<4>().0.iter_mut().zip(row) {
                 let factor = 1.0 - front[3] * group.opacity;
-                for (back, front) in back.iter_mut().zip(front) {
-                    *back = front * group.opacity + *back * factor;
+                let tint = tint_pixels.map(|pixels| pixels[index]);
+                for (channel, back) in back.iter_mut().enumerate() {
+                    let source = front[channel];
+                    let plain = source * group.opacity + *back * factor;
+                    // Apply group opacity once to the glass and its tint layers together.
+                    *back = tint.map_or(plain, |tint| {
+                        let full = source + *back * (1.0 - front[3]);
+                        if tint[channel] == full { plain } else {
+                            tint[channel] * group.opacity + *back * (1.0 - group.opacity)
+                        }
+                    });
                 }
+                index += 1;
             }
         }
         if let Some(snapshots) = snapshots.as_deref_mut() {

@@ -51,6 +51,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let shapes = fields.each_ref().map(|rgba| [Shape::Field(Raster { size, rgba })]);
     let groups = shapes.each_ref().map(|shapes| Group {
         shapes,
+        shape_tags: &[],
+        tints: &[],
         material: Material { kind: MaterialKind::Foreground, uniforms: &uniforms, extension: &[] },
         opacity: 1.0,
         smoothness: 0.0,

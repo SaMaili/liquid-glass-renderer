@@ -81,6 +81,8 @@ fn render(frame: &mut Frame, renderer: &mut Renderer, input: &mut impl Read) -> 
     }
     let borrowed = groups.iter().map(|(shapes, prepared, smoothness, opacity)| Ok(Group {
         shapes,
+        shape_tags: &[],
+        tints: &[],
         material: prepared.material.material(MaterialKind::All)?,
         smoothness: *smoothness,
         opacity: *opacity,

@@ -37,7 +37,9 @@ fn stable_frames_and_prefixes_are_reused_but_all_visible_inputs_invalidate() {
     let a=[fixed(9.137)];
     let b=[fixed(35.112)];
     let shifted=[fixed(37.112)];
-    let group=|shapes,material,blur_levels| [Group {shapes,material,blur_levels,opacity:1.0,smoothness:0.0}];
+    let group=|shapes,material,blur_levels| [Group {
+        shapes,material,blur_levels,opacity:1.0,smoothness:0.0,shape_tags:&[],tints:&[],
+    }];
     let cards=group(&a[..],plain.material.material(MaterialKind::All).unwrap(),plain.blur_levels);
     let button=group(&b[..],plain.material.material(MaterialKind::All).unwrap(),plain.blur_levels);
     let changed_button=group(&shifted[..],plain.material.material(MaterialKind::All).unwrap(),plain.blur_levels);
@@ -87,7 +89,7 @@ fn stable_frames_and_prefixes_are_reused_but_all_visible_inputs_invalidate() {
     assert!(replacement.stats().draws>0);
     let before=replacement.stats().draws;
     let broken=[FrameStage::Glass {backdrop:Backdrop::Original,groups:&[
-        Group {shapes:&[],material:plain.material.material(MaterialKind::All).unwrap(),smoothness:0.,opacity:1.,blur_levels:1},
+        Group {shapes:&[],material:plain.material.material(MaterialKind::All).unwrap(),smoothness:0.,opacity:1.,blur_levels:1,shape_tags:&[],tints:&[]},
     ]}];
     assert!(cache.render(&mut replacement,&updated,&broken).is_err());
     assert_eq!(cache.render(&mut replacement,&updated,&drag).unwrap().pixels(),changed.pixels());
@@ -151,6 +153,8 @@ fn resizing_and_removing_groups_preserves_pixels_and_bounds_resident_storage() {
         let right = [group_at(22.0)];
         let group = |shapes| Group {
             shapes,
+            shape_tags: &[],
+            tints: &[],
             material: recipe.material.material(MaterialKind::All).unwrap(),
             blur_levels: recipe.blur_levels,
             opacity: 1.0,

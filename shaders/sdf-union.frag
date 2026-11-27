@@ -8,6 +8,9 @@ layout(std140,binding=1) uniform Union { vec4 parameters; } u;
 vec4 sdfUnion(vec4 a,vec4 b,float smoothness) {
     if(b.w==0.0) b.xyz=vec3(10000.0,0.0,0.0);
     float k=clamp(0.5-0.5*dot(a.yz,b.yz),0.0,1.0)*smoothness;
+#ifdef RESOLVE_UNION_TIES
+    if(k==0.0 && a.x==b.x) return vec4(a.xyz,1.0);
+#endif
     float h=clamp(0.5+0.5*(b.x-a.x)/k,0.0,1.0);
     return vec4(mix(b.x,a.x,h)-k*h*(1.0-h),mix(b.yz,a.yz,h),1.0);
 }

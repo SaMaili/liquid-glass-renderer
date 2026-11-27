@@ -41,6 +41,14 @@ impl KeyFillHighlight {
                 YccColor { black: 0.15, white: 1.1, saturation: 1.0, fill: [0.0; 4] },
                 Some([0.05087609_f32, 0.05087609, 0.05087609, 1.0]),
             ),
+            (RecipeRole::AppIcons, false) => (
+                YccColor { black: 0.15, white: 1.1, saturation: 1.0, fill: [0.0; 4] },
+                Some([0.05087609_f32, 0.05087609, 0.05087609, 1.0]),
+            ),
+            (RecipeRole::AppIcons, true) => (
+                YccColor { black: 0.22, white: 0.95, saturation: 1.15, fill: [0.0; 4] },
+                Some([0.025_f32, 0.025, 0.025, 1.0]),
+            ),
         };
         let mut mat = ycc.matrix()?;
         if let Some(dodge) = dodge_fill {
@@ -74,6 +82,7 @@ pub enum RecipeRole {
     Regular,
     Clear,
     Popover,
+    AppIcons,
 }
 
 /// Inputs for the demo's active SDR material context (26A434, retail V2).
@@ -160,6 +169,7 @@ impl SdrRecipe {
 
         let dock = matches!(self.role, RecipeRole::Dock);
         let clear = matches!(self.role, RecipeRole::Clear);
+        let app_icons = matches!(self.role, RecipeRole::AppIcons);
         let popover = matches!(self.role, RecipeRole::Popover);
         let regular = matches!(self.role, RecipeRole::Regular | RecipeRole::Popover);
         let dark = matches!(self.appearance, Appearance::Dark);
@@ -172,6 +182,7 @@ impl SdrRecipe {
             RecipeRole::Dock => [0.08, -0.18, 0.13, 0.42],
             RecipeRole::Regular | RecipeRole::Popover => [0.25, -0.5, 0.2, 0.25],
             RecipeRole::Clear => [0.36, -0.65, 0.125, 0.2],
+            RecipeRole::AppIcons => [0.15, -0.65, 0.13, 0.35],
         };
         let mut spec = MaterialSpec {
             blur: BlurSpec {
@@ -182,6 +193,7 @@ impl SdrRecipe {
                     RecipeRole::Dock => ParameterScale::Constant(1.5),
                     RecipeRole::Regular | RecipeRole::Popover => clamped([0.0, 4.0]),
                     RecipeRole::Clear => ParameterScale::Constant(0.75),
+                    RecipeRole::AppIcons => ParameterScale::Constant(2.0),
                 },
                 outer_refraction_blur_radius: regular.then_some(5.0),
             },
@@ -215,7 +227,11 @@ impl SdrRecipe {
             fill: BlurFill { radius: 0.0, lighten: 0.0, darken: 0.0, normal: 0.0 },
         };
 
-        let mut face = if dock && dark {
+        let mut face = if app_icons && dark {
+            YccColor { white: 0.30, black: 0.05, saturation: 0.80, fill: [0.0; 4] }
+        } else if app_icons {
+            YccColor { white: 0.80, black: 0.12, saturation: 1.20, fill: [0.0; 4] }
+        } else if dock && dark {
             YccColor { white: 0.92, black: 0.05, saturation: 1.25, fill: [0.0,0.0,0.0,0.02] }
         } else if dock {
             YccColor { white: 0.9, black: 0.15, saturation: 1.25, fill: [1.0,1.0,1.0,0.0] }
@@ -326,12 +342,12 @@ impl SdrRecipe {
             clamp_limit: 1.0, clamp_override: 0.0, context_gamma: 2.2,
             preserve_hue: 0, force_preserve_hue: false,
             highlights: Highlights {
-                height: if layer.specular { 1.0 } else { 0.0 },
+                height: if layer.specular { if app_icons { 0.5 } else { 1.0 } } else { 0.0 },
                 angle: std::f64::consts::FRAC_PI_2,
                 spread: dark_spread,
                 spread_sdr: dark_spread_sdr,
                 amount: 0.4,
-                effect_offset: layer.highlight_offset.unwrap_or(-1.0),
+                effect_offset: layer.highlight_offset.unwrap_or(if app_icons { -0.5 } else { -1.0 }),
                 color_bias: -0.25,
             },
         };

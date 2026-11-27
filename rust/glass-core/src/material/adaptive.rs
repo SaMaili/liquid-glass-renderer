@@ -125,6 +125,7 @@ impl BackdropState {
             RecipeRole::Clear => 0,
             RecipeRole::Dock => 1,
             RecipeRole::Popover => return Err("popover uses an explicit appearance".into()),
+            RecipeRole::AppIcons => return Err("app icons use an explicit appearance".into()),
         };
         let options = (base_options & !profile.options_removed) | profile.options_added;
         let requested = options & ADAPTIVE != 0 && options & DISABLE_ADAPTIVE == 0

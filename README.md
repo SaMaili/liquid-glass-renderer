@@ -84,7 +84,7 @@ Build custom scenes with `SceneRenderer`, `Element`, and `Material`. The Python 
 - [x] `26B123` `SiriEffect` GLSL port (`shaders/siri-effect.frag`: 4× RGSS MSAA chromatic wave + 6-pair fluid metaball dots)
 - [x] Rust interaction effects for hover, press, and localized glow
 - [x] Rust partial backdrop updates and GPU resource reuse
-- [ ] General automatic material and shape matching as in the macOS compositor
+- [x] Automatic material and shape matching (`matching::GlassContainer`: cross-ID `match_id` spring morphing, automatic `sdfUnion` grouping, and backdrop luminance adaptation)
 - [ ] Full visual parity with Apple's native output across graphics drivers
 
 The repository includes runnable renderers and synthetic examples.

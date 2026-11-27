@@ -2,6 +2,7 @@
 //! The application supplies scene order and material inputs. No frame scheduler.
 mod gl;
 pub mod interaction;
+pub mod matching;
 pub mod material;
 pub mod overlay;
 pub mod raster;

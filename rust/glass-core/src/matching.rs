@@ -535,7 +535,8 @@ impl GlassContainer {
                     let tag = (idx as u64) + 1;
                     shape_tags.push(tag);
                     if let Some(rgba) = item.tint {
-                        let linear = decode(rgba);
+                        let a = rgba[3];
+                        let linear = decode([rgba[0] * a, rgba[1] * a, rgba[2] * a, a]);
                         tints.push(Tint {
                             shape_filter: ShapeFilter::exact(tag),
                             ramp: TintRamp::SOFT,

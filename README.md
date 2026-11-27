@@ -22,6 +22,12 @@ A glass Apple logo morphs into “hello,” followed by all 49 localized Hello v
 
 Renders the recovered macOS 27.2 (`26B123`) `SiriEffect` shaders (`shaders/siri-effect.frag`: 4× RGSS MSAA chromatic light ribbon and 6-pair fluid metaball thinking dots) inside a circular Liquid Glass orb with a glossy dark upper dome transitioning smoothly into crystal-clear optical refraction below.
 
+### Automatic material and shape matching
+
+![Glass controls merge with per-shape tints, hand off springs across IDs, separate Clear from Regular roles, and adapt between Light and Dark glass over the Golden Gate Bridge](media/matching-container.gif)
+
+Demonstrates `matching::GlassContainer`: proximate compatible shapes automatically unite into shared `sdfUnion` batches with per-shape tagged tints, departing and arriving entries with the same `match_id` transfer live 300 Hz spring state seamlessly, incompatible roles (`Clear` over `Regular`) stay in separate ordered passes, and `adaptive` surfaces switch between `Light` and `Dark` glass from live backdrop luminance.
+
 ### Elastic drag and release
 
 ![A pointer stretches a glass control, then releases it so it springs back into shape](media/elastic-drag.gif)
@@ -41,7 +47,7 @@ Calendar and clock widgets from the live Quickshell integration on Hyprland. All
 You do not need to read any reverse-engineering internals to build with this renderer:
 
 1. **Rust applications & creative tools (e.g. an Icon Composer):**
-   Use the `liquid_glass_core` crate (`Renderer`, `Frame`, `SdrRecipe`, `RecipeRole::AppIcons`, `LiveScene`) to composite real-time Liquid Glass layers over your own canvas or render directly to RGBA buffers for PNG export.
+   Use the `liquid_glass_core` crate (`Renderer`, `Frame`, `SdrRecipe`, `RecipeRole::AppIcons`, `LiveScene`, `matching::GlassContainer`) to composite real-time Liquid Glass layers over your own canvas or render directly to RGBA buffers for PNG export.
 2. **Python scripts & prototypes:**
    Use the `liquid_glass` package (`SceneRenderer`, `Element`, `Material`) for offscreen image and animation rendering with NumPy arrays.
 3. **Shared GLSL shaders:**

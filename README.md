@@ -16,6 +16,12 @@ The renderer was built by reverse-engineering a macOS system image and uses the 
 
 A glass Apple logo morphs into “hello,” followed by all 49 localized Hello variants bundled with macOS 27.2 and the English “Welcome.” The preview uses the Setup Assistant’s Macintosh Skeletal lettering and recovered optical parameters. The Golden Gate scene, logo transition, and pacing of the language rotation are specific to this preview.
 
+### Siri orb
+
+![A circular Liquid Glass Siri orb with a dark upper dome, crystal-clear refracting lower half, chromatic light wave, and fluid thinking dots over the Golden Gate Bridge](media/siri-orb.gif)
+
+Renders the recovered macOS 27.2 (`26B123`) `SiriEffect` shaders (`shaders/siri-effect.frag`: 4× RGSS MSAA chromatic light ribbon and 6-pair fluid metaball thinking dots) inside a circular Liquid Glass orb with a glossy dark upper dome transitioning smoothly into crystal-clear optical refraction below.
+
 ### Elastic drag and release
 
 ![A pointer stretches a glass control, then releases it so it springs back into shape](media/elastic-drag.gif)
@@ -34,10 +40,12 @@ Calendar and clock widgets from the live Quickshell integration on Hyprland. All
 
 You do not need to read any reverse-engineering internals to build with this renderer:
 
-1. **Standalone apps & creative tools (e.g. an Icon Composer, Rust / C++ / Python):**
-   Use the `liquid_glass_core` Rust crate (`Renderer`, `Frame`, `SdrRecipe`, `RecipeRole::AppIcons`), the Python package (`SceneRenderer`, `Element`, `Material`), or the C ABI in [`integrations/hyprland/widget_renderer.hpp`](integrations/hyprland/widget_renderer.hpp) (`lg_widget_prepare` for real-time GPU viewports, `lg_widget_render` for RGBA/PNG export). No compositor integration required when rendering glass over your own app canvas.
-2. **Desktop shells & Wayland overlays (Hyprland + Quickshell / GTK4-Layer-Shell):**
-   Use the compositor GPU plugin in [`integrations/hyprland/`](integrations/hyprland/) and see **[`integrations/hyprland/QUICKSTART.md`](integrations/hyprland/QUICKSTART.md)** for the complete IPC reference (material roles `0..7`, `localBounds`, vertical Dual-Tint `grad`, and GPU `sdfUnion` Mitosis).
+1. **Rust applications & creative tools (e.g. an Icon Composer):**
+   Use the `liquid_glass_core` crate (`Renderer`, `Frame`, `SdrRecipe`, `RecipeRole::AppIcons`, `LiveScene`) to composite real-time Liquid Glass layers over your own canvas or render directly to RGBA buffers for PNG export.
+2. **Python scripts & prototypes:**
+   Use the `liquid_glass` package (`SceneRenderer`, `Element`, `Material`) for offscreen image and animation rendering with NumPy arrays.
+3. **Shared GLSL shaders:**
+   The `shaders/` directory contains the standalone GLSL 450 passes (including `siri-effect.frag` for the 26B123 chromatic light wave and fluid thinking dots) for integration into any OpenGL/Vulkan/wgpu host.
 
 ## Installation and quick start
 
@@ -73,10 +81,7 @@ Build custom scenes with `SceneRenderer`, `Element`, and `Material`. The Python 
 - [x] Ordered glass groups that sample either the original backdrop or the composited result
 - [x] Spring animations that can be retargeted while in motion
 - [x] Rust SDR material recipes for Clear, Regular, Dock, Popover, and AppIcons with diffusion and tint
-- [x] Native vertical Dual-Tint gradient (`widgetTint` → `widgetTint2` with `clearBottomFactor` for dark-top / crystal-clear-bottom glass)
-- [x] GPU `sdfUnion` Mitosis with anisotropic ellipses (smooth button/droplet merging)
 - [x] `26B123` `SiriEffect` GLSL port (`shaders/siri-effect.frag`: 4× RGSS MSAA chromatic wave + 6-pair fluid metaball dots)
-- [x] Hyprland GPU compositor plugin (`integrations/hyprland/`) with C ABI and IPC quickstart
 - [x] Rust interaction effects for hover, press, and localized glow
 - [x] Rust partial backdrop updates and GPU resource reuse
 - [ ] General automatic material and shape matching as in the macOS compositor

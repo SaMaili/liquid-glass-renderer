@@ -96,9 +96,19 @@ pub struct SdrRecipe {
     pub style: BackgroundStyle,
 }
 
+#[derive(Clone, Copy)]
 pub struct PreparedSdrMaterial {
     pub material: BackgroundMaterial,
     pub blur_levels: u32,
+}
+
+impl PreparedSdrMaterial {
+    pub fn lerp(&self, other: &Self, t: f32) -> Result<Self> {
+        Ok(Self {
+            material: self.material.lerp(&other.material, t)?,
+            blur_levels: self.blur_levels.max(other.blur_levels),
+        })
+    }
 }
 
 pub struct LayerEffects {

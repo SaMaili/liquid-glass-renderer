@@ -39,6 +39,102 @@ pub(super) fn binary16_bits(value: f32) -> Result<u16> {
     Ok(sign | encoded as u16)
 }
 
+fn binary16_to_f32(bits: u16) -> f32 {
+    let sign = ((bits as u32) & 0x8000) << 16;
+    let exp = ((bits >> 10) & 0x1f) as i32;
+    let mant = (bits & 0x03ff) as u32;
+    if exp == 0 {
+        if mant == 0 {
+            return f32::from_bits(sign);
+        }
+        let val = (mant as f32) * 2.0_f32.powi(-24);
+        return if sign != 0 { -val } else { val };
+    }
+    if exp == 31 {
+        return f32::from_bits(sign | 0x7f80_0000 | (mant << 13));
+    }
+    let f32_exp = ((exp - 15 + 127) as u32) << 23;
+    f32::from_bits(sign | f32_exp | (mant << 13))
+}
+
+pub(super) fn interpolate_background(
+    a: &BackgroundMaterial,
+    b: &BackgroundMaterial,
+    t: f32,
+) -> Result<BackgroundMaterial> {
+    if !t.is_finite() {
+        return Err("finite material interpolation factor required".into());
+    }
+    let t = t.clamp(0.0, 1.0);
+    if t <= 0.0 {
+        return Ok(*a);
+    }
+    if t >= 1.0 {
+        return Ok(*b);
+    }
+
+    let mut uniforms = a.uniforms;
+    let mut extension = a.extension;
+
+    let lerp_f32 = |va: f32, vb: f32| -> f32 {
+        if va == vb {
+            va
+        } else if va.is_infinite() || vb.is_infinite() {
+            if t < 0.5 { va } else { vb }
+        } else {
+            va + (vb - va) * t
+        }
+    };
+
+    for i in 0..80 {
+        let off = i * 4;
+        if (80..152).contains(&off) {
+            continue;
+        }
+        let va = f32::from_ne_bytes(a.uniforms[off..off + 4].try_into().unwrap());
+        let vb = f32::from_ne_bytes(b.uniforms[off..off + 4].try_into().unwrap());
+        let v = lerp_f32(va, vb);
+        uniforms[off..off + 4].copy_from_slice(&v.to_ne_bytes());
+    }
+
+    // Normalize interpolated BlurFill lighten + darken <= 1.0 at bytes 296..304
+    let mut light = f32::from_ne_bytes(uniforms[296..300].try_into().unwrap()).max(0.0);
+    let mut dark = f32::from_ne_bytes(uniforms[300..304].try_into().unwrap()).max(0.0);
+    let normal = f32::from_ne_bytes(uniforms[304..308].try_into().unwrap()).max(0.0);
+    let sum = light + dark;
+    if sum > 1.0 {
+        light /= sum;
+        dark /= sum;
+        uniforms[296..300].copy_from_slice(&light.to_ne_bytes());
+        uniforms[300..304].copy_from_slice(&dark.to_ne_bytes());
+    }
+
+    // Interpolate 3x4 binary16 color matrices (face, bleed, shadow) at bytes 80..152
+    for step in 0..36 {
+        let off = 80 + step * 2;
+        let wa = u16::from_ne_bytes(a.uniforms[off..off + 2].try_into().unwrap());
+        let wb = u16::from_ne_bytes(b.uniforms[off..off + 2].try_into().unwrap());
+        let v = lerp_f32(binary16_to_f32(wa), binary16_to_f32(wb));
+        let w = binary16_bits(v)?;
+        uniforms[off..off + 2].copy_from_slice(&w.to_ne_bytes());
+    }
+
+    for i in 0..5 {
+        let off = i * 4;
+        let va = f32::from_ne_bytes(a.extension[off..off + 4].try_into().unwrap());
+        let vb = f32::from_ne_bytes(b.extension[off..off + 4].try_into().unwrap());
+        let v = lerp_f32(va, vb);
+        extension[off..off + 4].copy_from_slice(&v.to_ne_bytes());
+    }
+    extension[20] = if t < 0.5 { a.extension[20] } else { b.extension[20] };
+    extension[21] = u8::from(light > 0.0 || dark > 0.0 || normal > 0.0);
+    for flag in 22..28 {
+        extension[flag] = if t < 0.5 { a.extension[flag] } else { b.extension[flag] };
+    }
+
+    Ok(BackgroundMaterial { uniforms, extension })
+}
+
 fn matrix(buffer: &mut [u8], offset: usize, rows: &[[f32; 5]; 4]) -> Result<()> {
     if !rows.iter().flatten().all(|v| v.is_finite()) {
         return Err("finite color matrix required".into());

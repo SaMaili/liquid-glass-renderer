@@ -117,6 +117,7 @@ pub struct BackgroundParameters {
     pub face_color_matrix_max_luma_complement: f32,
 }
 
+#[derive(Clone, Copy)]
 pub struct BackgroundMaterial {
     uniforms: [u8; 320],
     extension: [u8; 28],
@@ -142,6 +143,12 @@ impl BackgroundMaterial {
 
     pub fn with_style(parameters: &BackgroundParameters, style: BackgroundStyle) -> Result<Self> {
         pack::background(parameters, style)
+    }
+
+    /// Interpolate packed shader uniforms & binary16 color matrices between two
+    /// materials (`26A434` `Animation.default` adaptive appearance transition).
+    pub fn lerp(&self, other: &Self, t: f32) -> Result<Self> {
+        pack::interpolate_background(self, other, t)
     }
 
     pub fn material(&self, kind: MaterialKind) -> Result<Material<'_>> {
